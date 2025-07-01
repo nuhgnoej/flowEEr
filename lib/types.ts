@@ -1,3 +1,19 @@
+export type Step = {
+  id: number;
+  name: string;
+  description?: string;
+  triggers: Trigger[];
+  representativeTime?: string;
+};
+
+export type Trigger = {
+  id: string;
+  type: TriggerType;
+  targetStepId?: number | null;
+  offset?: number;
+  time?: string;
+};
+
 export type TriggerType =
   | "at_time"
   | "after_step"
@@ -6,18 +22,9 @@ export type TriggerType =
   | "immediate"
   | "after_all";
 
-export type Trigger = {
-  id: string;
-  targetStepId: number | null;
-  type: TriggerType;
-  offset: number;
-  time?: string;
-};
-
-export type Step = {
+export type StepRow = {
   id: number;
+  flow_id: number;
   name: string;
-  triggers: Trigger[];
-  repeat: string;
-  alarm: boolean;
+  description: string;
 };

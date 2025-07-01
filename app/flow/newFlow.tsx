@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Step, Trigger } from "@/lib/types";
-
-import DateTimePicker from "@react-native-community/datetimepicker";
+// import DateTimePicker from "@react-native-community/datetimepicker";
 import { useNavigation } from "expo-router";
+import { saveFlow } from "@/lib/flowRepository";
 
 export default function NewFlowScreen() {
   const [flowName, setFlowName] = useState("");
@@ -34,8 +34,6 @@ export default function NewFlowScreen() {
       id: Date.now(),
       name: "",
       triggers: [],
-      repeat: "None",
-      alarm: true,
     };
     setSteps([...steps, newStep]);
   };
@@ -101,8 +99,6 @@ export default function NewFlowScreen() {
       <View style={styles.tableHeader}>
         <Text style={styles.headerCell}>#</Text>
         <Text style={styles.headerCell}>이름</Text>
-        <Text style={styles.headerCell}>반복</Text>
-        <Text style={styles.headerCell}>알림</Text>
         <Text style={styles.headerCell}>트리거</Text>
         <Text style={styles.headerCell}></Text>
       </View>
@@ -116,18 +112,6 @@ export default function NewFlowScreen() {
             placeholder="스텝 이름"
             value={step.name}
             onChangeText={(text) => updateStep(step.id, "name", text)}
-          />
-
-          <TextInput
-            style={[styles.cell, styles.inputCell]}
-            placeholder="반복"
-            value={step.repeat}
-            onChangeText={(text) => updateStep(step.id, "repeat", text)}
-          />
-
-          <Switch
-            value={step.alarm}
-            onValueChange={(val) => updateStep(step.id, "alarm", val)}
           />
 
           <TouchableOpacity onPress={() => addTrigger(step.id)}>
@@ -166,13 +150,20 @@ export default function NewFlowScreen() {
 
       <Button
         title="플로우 저장"
-        onPress={() => {
-          console.log({
-            flowName,
-            description,
-            steps,
-          });
-          alert("플로우가 저장되었습니다 (콘솔 확인)");
+        onPress={async () => {
+          try {
+            await saveFlow(flowName, description, steps);
+            console.log({
+              flowName,
+              description,
+              steps,
+            });
+            alert("플로우 저장 완료");
+            navigation.goBack();
+          } catch (e) {
+            console.error(e);
+            alert("저장 실패");
+          }
         }}
       />
     </ScrollView>
