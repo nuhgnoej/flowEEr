@@ -1,3 +1,32 @@
+export type FlowRow = {
+  id: number;
+  name: string;
+  description: string;
+};
+
+export type StepRow = {
+  id: number;
+  name: string;
+  description: string;
+  flow_id: number;
+};
+
+export type TriggerRow = {
+  id: string;
+  type: string;
+  targetStepId: number | null;
+  offset: number | null;
+  time: string | null;
+  step_id: number;
+};
+
+export type Flow = {
+  id: number;
+  name: string;
+  description?: string;
+  steps: Step[];
+};
+
 export type Step = {
   id: number;
   name: string;
@@ -22,9 +51,29 @@ export type TriggerType =
   | "immediate"
   | "after_all";
 
-export type StepRow = {
-  id: number;
-  flow_id: number;
-  name: string;
-  description: string;
-};
+export interface FlowEditorProps {
+  initialFlow?: {
+    name: string;
+    description?: string;
+    steps: Step[];
+  };
+  onSave: (name: string, description: string, steps: Step[]) => void;
+}
+
+export interface StepEditorProps {
+  step: Step;
+  index: number;
+  allSteps: Step[];
+  onChange: (step: Step) => void;
+  onDelete: () => void;
+  onAddTrigger: () => void;
+  onRemoveTrigger: (triggerId: string) => void;
+}
+
+export interface TriggerEditorProps {
+  visible: boolean;
+  onClose: () => void;
+  trigger: Trigger;
+  allSteps: Step[];
+  onChange: (updated: Trigger) => void;
+}

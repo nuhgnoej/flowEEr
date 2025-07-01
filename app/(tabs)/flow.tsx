@@ -1,13 +1,13 @@
-import { Alert, Pressable, ScrollView, StyleSheet } from "react-native";
-import { Text, View } from "@/components/Themed";
+import { Alert, Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { Link, useRouter } from "expo-router";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { DatabaseContext } from "@/lib/DatabaseProvider";
 import { ActivityIndicator } from "react-native";
 import { TouchableOpacity } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { deleteFlow, getAllFlows } from "@/lib/flowRepository";
+import { View } from "react-native";
 
 export default function FlowScreen() {
   const router = useRouter();
@@ -75,8 +75,6 @@ export default function FlowScreen() {
   }
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>My Flows</Text>
-
       {loading && (
         <View style={styles.center}>
           <ActivityIndicator />

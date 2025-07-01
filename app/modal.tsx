@@ -1,8 +1,7 @@
 // app/modal.tsx
 
 import { Link, Stack } from "expo-router";
-import { ScrollView, StyleSheet, Pressable } from "react-native";
-import { Text, View } from "@/components/Themed";
+import { Text, View, ScrollView, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function ModalScreen() {
