@@ -1,5 +1,3 @@
-// components/FlowEditor.tsx
-
 import React, { useState } from "react";
 import {
   View,
@@ -11,64 +9,68 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { FlowEditorProps, Step, Trigger } from "@/lib/types";
-import StepEditor from "./StepEditor";
+import { FlowEditorProps, Step } from "@/lib/types";
+import StepEditorModal from "./StepEditorModal";
+import { useNavigation } from "expo-router";
 
 export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
+  const navigation = useNavigation();
   const [flowName, setFlowName] = useState(initialFlow?.name || "");
   const [description, setDescription] = useState(
     initialFlow?.description || ""
   );
   const [steps, setSteps] = useState<Step[]>(initialFlow?.steps || []);
 
-  const addStep = () => {
-    const newStep: Step = {
-      id: Date.now(),
-      name: "",
-      triggers: [],
-    };
-    setSteps([...steps, newStep]);
+  const [stepModalVisible, setStepModalVisible] = useState(false);
+  const [editingStep, setEditingStep] = useState<Step | null>(null);
+
+  const openStepEditor = (step?: Step) => {
+    if (step) {
+      setEditingStep(step);
+    } else {
+      const newStep: Step = {
+        id: Date.now(),
+        name: "",
+        triggers: [],
+      };
+      setEditingStep(newStep);
+    }
+    setStepModalVisible(true);
   };
 
-  const removeStep = (id: number) => {
+  const handleSaveStep = (updatedStep: Step) => {
+    setSteps((prev) => {
+      const index = prev.findIndex((s) => s.id === updatedStep.id);
+      if (index >= 0) {
+        const copy = [...prev];
+        copy[index] = updatedStep;
+        return copy;
+      }
+      return [...prev, updatedStep];
+    });
+  };
+
+  const handleRemoveStep = (id: number) => {
     setSteps(steps.filter((s) => s.id !== id));
   };
 
-  const updateStep = (id: number, field: keyof Step, value: any) => {
-    setSteps(steps.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
-  };
-
-  const addTrigger = (stepId: number) => {
-    const newTrigger: Trigger = {
-      id: Date.now().toString(),
-      targetStepId: null,
-      type: "at_time",
-      offset: 0,
-      time: "07:00",
-    };
-    setSteps(
-      steps.map((s) =>
-        s.id === stepId ? { ...s, triggers: [...s.triggers, newTrigger] } : s
-      )
-    );
-  };
-
-  const removeTrigger = (stepId: number, triggerId: string) => {
-    setSteps(
-      steps.map((s) =>
-        s.id === stepId
-          ? { ...s, triggers: s.triggers.filter((t) => t.id !== triggerId) }
-          : s
-      )
-    );
-  };
-
-  const handleSave = () => {
+  const handleSaveFlow = () => {
     if (!flowName.trim()) {
       alert("플로우 이름을 입력하세요.");
       return;
     }
-    onSave(flowName, description, steps);
+
+    try {
+      onSave(flowName, description, steps);
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error("SAVE ERROR", e);
+        alert("저장 중 오류 발생: " + e.message);
+      } else {
+        console.error("Unknown error", e);
+        alert("알 수 없는 오류 발생");
+      }
+    }
   };
 
   return (
@@ -98,37 +100,60 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
       <View style={[styles.card, { marginTop: 24 }]}>
         <Text style={styles.sectionTitle}>스텝 목록</Text>
 
-        <View style={styles.tableHeader}>
-          <Text style={styles.headerCell}>#</Text>
-          <Text style={styles.headerCell}>이름</Text>
-          <Text style={styles.headerCell}>트리거</Text>
-          <Text style={styles.headerCell}></Text>
-        </View>
+        {steps.length === 0 && (
+          <Text style={{ color: "#888" }}>스텝이 없습니다.</Text>
+        )}
 
-        {steps.map((step, index) => (
-          <StepEditor
-            key={step.id}
-            step={step}
-            index={index}
-            allSteps={steps}
-            onChange={(updated) =>
-              setSteps(steps.map((s) => (s.id === step.id ? updated : s)))
-            }
-            onDelete={() => setSteps(steps.filter((s) => s.id !== step.id))}
-            onAddTrigger={() => addTrigger(step.id)}
-            onRemoveTrigger={(triggerId) => removeTrigger(step.id, triggerId)}
-          />
-        ))}
+        {steps.map((step, index) => {
+          const triggerSummary =
+            step.triggers.length > 0
+              ? step.triggers.map((t) => t.type).join(", ")
+              : "트리거 없음";
 
-        <TouchableOpacity onPress={addStep} style={styles.addButton}>
+          return (
+            <View key={step.id} style={styles.stepRow}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => openStepEditor(step)}
+              >
+                <Text style={styles.stepName}>
+                  {index + 1}. {step.name || "(이름 없음)"}
+                </Text>
+                <Text style={styles.triggerSummary}>{triggerSummary}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleRemoveStep(step.id)}>
+                <Ionicons name="trash-outline" size={20} color="red" />
+              </TouchableOpacity>
+            </View>
+          );
+        })}
+
+        <TouchableOpacity
+          onPress={() => openStepEditor()}
+          style={styles.addButton}
+        >
           <Text style={styles.addButtonText}>+ 새 스텝 추가</Text>
         </TouchableOpacity>
       </View>
 
       {/* 저장 버튼 */}
       <View style={{ marginTop: 32, marginBottom: 64 }}>
-        <Button title="플로우 저장" onPress={handleSave} />
+        <Button title="플로우 저장" onPress={handleSaveFlow} />
       </View>
+
+      {/* Step Editor Modal */}
+      {editingStep && (
+        <StepEditorModal
+          visible={stepModalVisible}
+          step={editingStep}
+          allSteps={steps}
+          onSave={(updated) => {
+            handleSaveStep(updated);
+            setStepModalVisible(false);
+          }}
+          onClose={() => setStepModalVisible(false)}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -157,47 +182,23 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  tableHeader: {
-    flexDirection: "row",
-    marginTop: 8,
-    backgroundColor: "#eee",
-    padding: 8,
-    borderRadius: 8,
-  },
-
-  tableRow: {
+  stepRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    flexWrap: "wrap",
+    borderBottomColor: "#eee",
+    gap: 8,
   },
 
-  headerCell: { flex: 1, fontWeight: "bold" },
-  cell: { flex: 1 },
-
-  inputCell: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 4,
-    marginHorizontal: 2,
+  stepName: {
+    fontSize: 16,
   },
 
-  triggerList: {
-    width: "100%",
-    backgroundColor: "#f9f9f9",
-    marginVertical: 4,
-    padding: 6,
-    borderRadius: 6,
-  },
-
-  triggerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginVertical: 2,
+  triggerSummary: {
+    color: "#888",
+    fontSize: 12,
+    marginTop: 2,
   },
 
   addButton: {

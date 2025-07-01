@@ -1,5 +1,3 @@
-// components/TriggerEditor.tsx
-
 import {
   Modal,
   View,
@@ -72,6 +70,9 @@ export default function TriggerEditor({
             trigger.type === "immediate") && (
             <>
               <Text style={styles.label}>타겟 스텝</Text>
+              {allSteps.length === 0 && (
+                <Text style={{ color: "#888" }}>선택할 스텝이 없습니다.</Text>
+              )}
               {allSteps.map((step) => (
                 <Pressable
                   key={step.id}
@@ -124,7 +125,7 @@ export default function TriggerEditor({
           )}
 
           <View style={styles.buttonRow}>
-            <Button title="닫기" onPress={onClose} />
+            <Button title="저장" onPress={onClose} />
           </View>
         </View>
       </View>

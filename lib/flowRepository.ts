@@ -23,7 +23,7 @@ export function mapDbToFlow(
       triggers: step.triggers.map((t) => ({
         id: t.id,
         type: t.type as TriggerType,
-        targetStepId: t.targetStepId,
+        targetStepId: t.target_step_id ?? undefined,
         offset: t.offset ?? undefined,
         time: t.time ?? undefined,
       })),
@@ -162,7 +162,7 @@ async function saveSteps(flowId: number, steps: Step[]) {
 
     for (const trigger of step.triggers) {
       await db.runAsync(
-        `INSERT INTO trigger (step_id, type, targetStepId, offset, time, id) 
+        `INSERT INTO trigger (step_id, type, target_step_id, offset, time, id) 
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
           stepId,
