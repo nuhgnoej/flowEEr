@@ -48,23 +48,23 @@
 
 ---
 
-## 🗂️ 폴더 구조 예시
+## 🗂️ 폴더 구조
 
 ```plaintext
 app/
-├── (tabs)/
-│   ├── index.tsx        // 홈 대시보드
-│   ├── flow.tsx         // 플로우 목록
-│   ├── schedule.tsx     // 스케줄 화면
-│   ├── settings.tsx     // 설정 화면
-│   └── _layout.tsx      // 탭 네비게이션
+├── (tabs)/            ✅ 메인 탭 그룹
+│   ├── index.tsx      // 홈 대시보드
+│   ├── flow.tsx       // 플로우 목록
+│   ├── step.tsx       // 스텝 목록
+│   ├── settings.tsx   // 설정
+│   └── _layout.tsx    // 탭 네비게이션
 ├── flow/
-│   ├── [id].tsx         // 플로우 상세/편집
-│   └── new.tsx          // 플로우 생성
-├── db/                  // SQLite 모델, 스키마
-├── lib/                 // 트리거 로직, 시간 계산 유틸
-├── components/          // UI 컴포넌트
-├── hooks/               // 상태 관리 훅
+│   ├── [id].tsx       // 플로우 상세/편집
+│   └── new.tsx        // 플로우 생성
+db/                     ✅ SQLite 모델, 쿼리
+lib/                    ✅ 시간 계산, 트리거 유틸
+components/             ✅ 재사용 UI
+hooks/                  ✅ 상태 관리 훅
 ```
 
 ---

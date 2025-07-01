@@ -1,10 +1,10 @@
-import { StyleSheet } from "react-native";
 import { Text, View } from "@/components/Themed";
+import { StyleSheet } from "react-native";
 
-export default function HomeScreen() {
+export default function StepScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>HomeScreen</Text>
+      <Text style={styles.title}>My Step</Text>
     </View>
   );
 }

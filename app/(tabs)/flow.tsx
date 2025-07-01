@@ -1,10 +1,10 @@
 import { StyleSheet } from "react-native";
 import { Text, View } from "@/components/Themed";
 
-export default function HomeScreen() {
+export default function FlowScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>HomeScreen</Text>
+      <Text style={styles.title}>My Flows</Text>
     </View>
   );
 }
