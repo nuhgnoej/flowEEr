@@ -1,10 +1,18 @@
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { Text, View } from "@/components/Themed";
+import { useRouter } from "expo-router";
 
 export default function FlowScreen() {
+  const router = useRouter();
+  const handlePress = () => {
+    router.push("/flow/newFlow");
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Flows</Text>
+      <Pressable onPress={handlePress}>
+        <Text>새 플로우 만들기</Text>
+      </Pressable>
     </View>
   );
 }
