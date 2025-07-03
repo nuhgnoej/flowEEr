@@ -58,7 +58,7 @@ export const TRIGGER_TYPES: TriggerType[] = [
 
 export const TRIGGER_TYPE_LABELS: Record<string, string> = {
   at_time: "특정시간",
-  delay: "지연",
+  delay: "오프셋",
   after: "특정스텝 후",
   end: "모든 스텝 완료",
 };

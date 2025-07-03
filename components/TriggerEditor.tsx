@@ -1,10 +1,11 @@
 // components/TriggerEditor.tsx
 
-import React, { useState, useEffect } from "react";
-import { Modal, View, Text, StyleSheet, Button, Pressable } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { Modal, View, Text, StyleSheet, Button, Pressable, TouchableWithoutFeedback } from "react-native";
 import WheelPicker from "react-native-wheely";
 import { Trigger, TriggerEditorProps, TriggerType } from "@/lib/types";
 import { TRIGGER_TYPES, TRIGGER_TYPE_LABELS } from "@/lib/types";
+import TriggerTypeButton from "./TriggerTypeButton";
 
 export default function TriggerEditor({
   visible,
@@ -19,9 +20,12 @@ export default function TriggerEditor({
     setLocalTrigger(trigger);
   }, [trigger]);
 
-  const update = (field: keyof Trigger, value: any) => {
-    setLocalTrigger({ ...localTrigger, [field]: value });
-  };
+   const update = useCallback(
+    (field: keyof Trigger, value: any) => {
+      setLocalTrigger((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
   const handleSave = () => {
     onChange(localTrigger);
@@ -59,33 +63,29 @@ export default function TriggerEditor({
       onRequestClose={onClose}
       transparent
     >
+      
       <View style={styles.overlay}>
+
+        {/* 바깥 눌렀을 때 닫기용 */}
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={StyleSheet.absoluteFill} />
+        </TouchableWithoutFeedback>
+
         <View style={styles.modal}>
           <Text style={styles.title}>트리거 설정</Text>
 
           {/* 트리거 타입 선택 */}
           <Text style={styles.label}>트리거 타입</Text>
           <View style={styles.typeRow}>
-            {TRIGGER_TYPES.map((type) => (
-              <Pressable
-                key={type}
-                style={[
-                  styles.typeButton,
-                  localTrigger.type === type && styles.typeButtonActive,
-                ]}
-                onPress={() => update("type", type)}
-              >
-                <Text
-                  style={
-                    localTrigger.type === type
-                      ? styles.typeButtonTextActive
-                      : styles.typeButtonText
-                  }
-                >
-                  {TRIGGER_TYPE_LABELS[type] || type}
-                </Text>
-              </Pressable>
-            ))}
+          {TRIGGER_TYPES.map((type) => (
+            <TriggerTypeButton
+              key={type}
+              type={type}
+              active={localTrigger.type === type}
+              label={TRIGGER_TYPE_LABELS[type] || type}
+              onPress={() => update("type", type)}
+            />
+          ))}
           </View>
 
           {/* 타겟 스텝 선택 */}
