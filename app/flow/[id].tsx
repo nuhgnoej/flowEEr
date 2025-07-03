@@ -1,46 +1,17 @@
-// app/flow/[id].tsx
-import FlowEditor from "@/components/FlowEditor";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import { getFlowById, updateFlow } from "@/lib/flowRepository";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { Flow } from "@/lib/types";
+// // app/flow/[id].tsx
+import { useNavigation } from "expo-router";
+import { useLayoutEffect } from "react";
+import { Text, View } from "react-native";
 
-type FlowForm = Omit<Flow, "id">;
-
-export default function EditFlowScreen() {
-  const { id } = useLocalSearchParams();
+export default function FlowDetailScreen (){
   const navigation = useNavigation();
-  const [initial, setInitial] = useState<FlowForm | null>(null);
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: "플로우 수정하기",
+      title: "플로우",
     });
   }, []);
-
-  useEffect(() => {
-    if (id) {
-      getFlowById(Number(id)).then((flow) => {
-        setInitial({
-          name: flow.name,
-          description: flow.description,
-          steps: flow.steps,
-        });
-      });
-    }
-  }, [id]);
-
-  if (!initial) {
-    return null;
-  }
-
-  return (
-    <FlowEditor
-      initialFlow={initial}
-      onSave={async (name, desc, steps) => {
-        await updateFlow(Number(id), name, desc, steps);
-        navigation.goBack();
-      }}
-    />
-  );
+  return <View>
+    <Text>This is Flow Detail Screen.</Text>
+  </View>
 }

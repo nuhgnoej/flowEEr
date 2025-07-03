@@ -33,6 +33,11 @@ export default function FlowScreen() {
     router.push("/flow/newFlow");
   };
 
+  const handleEdit = (id: number) => {
+    const route = `/flow/${id}/edit` as const;
+    router.push(route);
+  }
+
   const handleDelete = (id: number) => {
     Alert.alert(
       "플로우 삭제",
@@ -93,6 +98,10 @@ export default function FlowScreen() {
                 </Text>
               </TouchableOpacity>
             </Link>
+
+            <Pressable onPress={() => handleEdit(flow.id)} style={styles.deleteButton}>
+              <Ionicons name="create-outline" size={24} color="#333" />
+            </Pressable>
 
             <Pressable
               onPress={() => handleDelete(flow.id)}
