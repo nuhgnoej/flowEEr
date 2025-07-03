@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Button,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Step, Trigger, TRIGGER_TYPE_LABELS, TriggerType } from "@/lib/types";
@@ -80,6 +81,12 @@ export default function StepEditorModal({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
+
+        {/* 바깥 눌렀을 때 닫히는 투명 레이어 */}
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={StyleSheet.absoluteFill} />
+        </TouchableWithoutFeedback>
+
         <View style={styles.modal}>
           <Text style={styles.title}>스텝 편집</Text>
 
