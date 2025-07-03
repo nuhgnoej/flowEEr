@@ -74,44 +74,47 @@ export default function FlowScreen() {
     );
   }
   return (
-    <ScrollView style={styles.container}>
-      {loading && (
-        <View style={styles.center}>
-          <ActivityIndicator />
-          <Text>불러오는 중...</Text>
-        </View>
-      )}
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        {loading && (
+          <View style={styles.center}>
+            <ActivityIndicator />
+            <Text>불러오는 중...</Text>
+          </View>
+        )}
 
-      {flows.map((flow) => (
-        <View key={flow.id} style={styles.itemRow}>
-          <Link href={`/flow/${flow.id}`} asChild>
-            <TouchableOpacity style={styles.itemContent}>
-              <Text style={styles.name}>{flow.name}</Text>
-              <Text style={styles.description}>
-                {flow.description || "설명 없음"}
-              </Text>
-            </TouchableOpacity>
-          </Link>
+        {flows.map((flow) => (
+          <View key={flow.id} style={styles.itemRow}>
+            <Link href={`/flow/${flow.id}`} asChild>
+              <TouchableOpacity style={styles.itemContent}>
+                <Text style={styles.name}>{flow.name}</Text>
+                <Text style={styles.description}>
+                  {flow.description || "설명 없음"}
+                </Text>
+              </TouchableOpacity>
+            </Link>
 
-          <Pressable
-            onPress={() => handleDelete(flow.id)}
-            style={styles.deleteButton}
-          >
-            <Ionicons name="trash-outline" size={24} color="red" />
-          </Pressable>
-        </View>
-      ))}
+            <Pressable
+              onPress={() => handleDelete(flow.id)}
+              style={styles.deleteButton}
+            >
+              <Ionicons name="trash-outline" size={24} color="red" />
+            </Pressable>
+          </View>
+        ))}
 
-      {flows.length === 0 && !loading && (
-        <View style={styles.center}>
-          <Text>저장된 플로우가 없습니다.</Text>
-        </View>
-      )}
+        {flows.length === 0 && !loading && (
+          <View style={styles.center}>
+            <Text>저장된 플로우가 없습니다.</Text>
+          </View>
+        )}
+      </ScrollView>
 
-      <Pressable onPress={handlePress}>
-        <Text>새 플로우 만들기</Text>
-      </Pressable>
-    </ScrollView>
+      {/* 플로팅 액션 버튼 */}
+      <TouchableOpacity style={styles.fab} onPress={handlePress}>
+        <Ionicons name="add" size={32} color="#fff" />
+      </TouchableOpacity>
+    </View>
   );
 }
 const styles = StyleSheet.create({
@@ -170,5 +173,21 @@ const styles = StyleSheet.create({
   deleteButton: {
     marginLeft: 8,
     padding: 4,
+  },
+  fab: {
+    position: "absolute",
+    right: 24,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#6200ee",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4, // 안드로이드 그림자
+    shadowColor: "#000", // iOS 그림자
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });

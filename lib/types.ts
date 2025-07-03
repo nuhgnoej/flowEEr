@@ -45,11 +45,23 @@ export type Trigger = {
 
 export type TriggerType =
   | "at_time"
-  | "after_step"
-  | "delay_from_step"
-  | "manual"
-  | "immediate"
-  | "after_all";
+  | "after"
+  | "delay"
+  | "end";
+
+export const TRIGGER_TYPES: TriggerType[] = [
+  "at_time",
+  "after",
+  "delay",
+  "end",
+];
+
+export const TRIGGER_TYPE_LABELS: Record<string, string> = {
+  at_time: "특정시간",
+  delay: "지연",
+  after: "특정스텝 후",
+  end: "모든 스텝 완료",
+};
 
 export interface FlowEditorProps {
   initialFlow?: {

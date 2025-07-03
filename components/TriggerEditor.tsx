@@ -4,15 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, View, Text, StyleSheet, Button, Pressable } from "react-native";
 import WheelPicker from "react-native-wheely";
 import { Trigger, TriggerEditorProps, TriggerType } from "@/lib/types";
-
-const triggerTypes: TriggerType[] = [
-  "at_time",
-  "after_step",
-  "delay_from_step",
-  "manual",
-  "immediate",
-  "after_all",
-];
+import { TRIGGER_TYPES, TRIGGER_TYPE_LABELS } from "@/lib/types";
 
 export default function TriggerEditor({
   visible,
@@ -74,7 +66,7 @@ export default function TriggerEditor({
           {/* 트리거 타입 선택 */}
           <Text style={styles.label}>트리거 타입</Text>
           <View style={styles.typeRow}>
-            {triggerTypes.map((type) => (
+            {TRIGGER_TYPES.map((type) => (
               <Pressable
                 key={type}
                 style={[
@@ -90,16 +82,16 @@ export default function TriggerEditor({
                       : styles.typeButtonText
                   }
                 >
-                  {type}
+                  {TRIGGER_TYPE_LABELS[type] || type}
                 </Text>
               </Pressable>
             ))}
           </View>
 
           {/* 타겟 스텝 선택 */}
-          {(localTrigger.type === "after_step" ||
-            localTrigger.type === "delay_from_step" ||
-            localTrigger.type === "immediate") && (
+          {(localTrigger.type === "after" ||
+            localTrigger.type === "delay" 
+           ) && (
             <>
               <Text style={styles.label}>타겟 스텝</Text>
               {allSteps.length === 0 && (
@@ -132,7 +124,7 @@ export default function TriggerEditor({
           )}
 
           {/* 오프셋 시간 설정 */}
-          {["after_step", "delay_from_step", "immediate"].includes(
+          {["after", "delay"].includes(
             localTrigger.type
           ) && (
             <>

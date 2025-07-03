@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { FlowEditorProps, Step } from "@/lib/types";
+import { FlowEditorProps, Step, TRIGGER_TYPE_LABELS } from "@/lib/types";
 import StepEditorModal from "./StepEditorModal";
 import { useNavigation } from "expo-router";
 
@@ -107,7 +107,7 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
         {steps.map((step, index) => {
           const triggerSummary =
             step.triggers.length > 0
-              ? step.triggers.map((t) => t.type).join(", ")
+              ? step.triggers.map((t) => TRIGGER_TYPE_LABELS[t.type] || t.type).join(", ")
               : "트리거 없음";
 
           return (

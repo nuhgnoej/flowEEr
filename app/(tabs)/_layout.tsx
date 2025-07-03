@@ -3,10 +3,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link, Tabs } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import Colors from "@/constants/Colors";
-import { useColorScheme } from "@/components/useColorScheme";
-import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-
 function TabBarIcon({
   name,
   focusedName,
@@ -36,22 +32,20 @@ function HeaderTitle({
   iconName: React.ComponentProps<typeof Ionicons>["name"];
   label: string;
 }) {
-  const colorScheme = useColorScheme();
-  const textColor = Colors[colorScheme ?? "light"].text;
+  
 
   return (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
       <Ionicons
         name={iconName}
         size={20}
-        color={textColor}
-        style={{ marginRight: 8 }}
+               style={{ marginRight: 8 }}
       />
       <Text
         style={{
           fontSize: 20,
           fontWeight: "600",
-          color: textColor,
+          
         }}
       >
         {label}
@@ -61,13 +55,12 @@ function HeaderTitle({
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: useClientOnlyValue(false, true),
+        
       }}
     >
       <Tabs.Screen
@@ -90,7 +83,7 @@ export default function TabLayout() {
                   <Ionicons
                     name="information-circle-outline"
                     size={25}
-                    color={Colors[colorScheme ?? "light"].text}
+                   
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
                   />
                 )}

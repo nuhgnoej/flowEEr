@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -9,17 +9,8 @@ import {
   Button,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Step, Trigger, TriggerType } from "@/lib/types";
+import { Step, Trigger, TRIGGER_TYPE_LABELS, TriggerType } from "@/lib/types";
 import TriggerEditor from "./TriggerEditor";
-
-const triggerTypes: TriggerType[] = [
-  "at_time",
-  "after_step",
-  "delay_from_step",
-  "manual",
-  "immediate",
-  "after_all",
-];
 
 interface Props {
   visible: boolean;
@@ -36,10 +27,15 @@ export default function StepEditorModal({
   onSave,
   onClose,
 }: Props) {
-  const [name, setName] = useState(step.name);
-  const [triggers, setTriggers] = useState<Trigger[]>(step.triggers || []);
+  const [name, setName] = useState(step?.name || "");
+  const [triggers, setTriggers] = useState(step?.triggers || []);
   const [triggerModalVisible, setTriggerModalVisible] = useState(false);
   const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null);
+
+  useEffect(() => {
+    setName(step?.name || "");
+    setTriggers(step?.triggers || []);
+  }, [step]);
 
   const handleAddTrigger = () => {
     const newTrigger: Trigger = {
@@ -111,7 +107,7 @@ export default function StepEditorModal({
                   style={{ flex: 4, flexDirection: "row" }}
                   onPress={() => handleEditTrigger(t)}
                 >
-                  <Text style={{ flex: 1 }}>{t.type}</Text>
+                  <Text style={{ flex: 1 }}>{TRIGGER_TYPE_LABELS[t.type] || t.type}</Text>
                   <Text style={{ flex: 1 }}>
                     대상:{" "}
                     {t.targetStepId

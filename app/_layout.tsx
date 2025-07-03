@@ -10,7 +10,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
-import { useColorScheme } from "@/components/useColorScheme";
 import { DatabaseProvider } from "@/lib/DatabaseProvider";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -56,10 +55,10 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+   
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
@@ -73,6 +72,6 @@ function RootLayoutNav() {
           }}
         />
       </Stack>
-    </ThemeProvider>
+   
   );
 }
