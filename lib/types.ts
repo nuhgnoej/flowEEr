@@ -14,7 +14,7 @@ export type StepRow = {
 export type TriggerRow = {
   id: string;
   type: string;
-  target_step_id: number | null;
+  target_step_ids: string | null;
   offset: number | null;
   time: string | null;
   step_id: number;
@@ -38,7 +38,7 @@ export type Step = {
 export type Trigger = {
   id: string;
   type: TriggerType;
-  targetStepId?: number | null;
+  targetStepIds?: number[];
   offset?: number;
   time?: string;
 };

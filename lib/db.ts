@@ -38,7 +38,7 @@ export async function initDatabase() {
         id TEXT PRIMARY KEY,
         step_id INTEGER NOT NULL,
         type TEXT NOT NULL,
-        target_step_id INTEGER,
+        target_step_ids TEXT,
         offset INTEGER,
         time TEXT,
         FOREIGN KEY(step_id) REFERENCES step(id) ON DELETE CASCADE
