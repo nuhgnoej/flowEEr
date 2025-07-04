@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import * as SQLite from "expo-sqlite";
+import { getDatabase, initDatabase } from "./db";
 
 type DatabaseContextType = {
   db: SQLite.SQLiteDatabase | null;
@@ -17,49 +18,8 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const database = await SQLite.openDatabaseAsync("flow.db");
-      await database.runAsync("PRAGMA foreign_keys = ON;");
-
-      await database.runAsync(
-        `CREATE TABLE IF NOT EXISTS flow (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          description TEXT
-        );`
-      );
-      await database.runAsync(
-        `CREATE TABLE IF NOT EXISTS step (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          flow_id INTEGER NOT NULL,
-          name TEXT NOT NULL,
-          description TEXT,
-          position INTEGER NOT NULL,
-          FOREIGN KEY(flow_id) REFERENCES flow(id) ON DELETE CASCADE
-        );`
-      );
-      await database.runAsync(
-        `CREATE TABLE IF NOT EXISTS trigger (
-          id TEXT PRIMARY KEY,
-          step_id INTEGER NOT NULL,
-          type TEXT NOT NULL,
-          target_step_id INTEGER,
-          offset INTEGER,
-          time TEXT,
-          FOREIGN KEY(step_id) REFERENCES step(id) ON DELETE CASCADE
-        );`
-      );
-
-      // Ensure position column exists for existing databases
-      const cols = await database.getAllAsync<{ name: string }>(
-        `PRAGMA table_info(step);`
-      );
-      const hasPos = cols.some((c) => c.name === "position");
-      if (!hasPos) {
-        await database.runAsync(
-          `ALTER TABLE step ADD COLUMN position INTEGER NOT NULL DEFAULT 0`
-        );
-      }
-
+      await initDatabase();
+      const database = await getDatabase();
       setDb(database);
       setIsReady(true);
     })();

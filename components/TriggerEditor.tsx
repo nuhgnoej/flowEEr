@@ -43,6 +43,18 @@ export default function TriggerEditor({
     update("offset", total);
   };
 
+  const toggleTargetStep = (id: number) => {
+    const current = localTrigger.targetStepIds ?? [];
+    if (current.includes(id)) {
+      update(
+        "targetStepIds",
+        current.filter((s) => s !== id)
+      );
+    } else {
+      update("targetStepIds", [...current, id]);
+    }
+  };
+
   // ⏰ at_time 처리 (시:분 문자열 → 숫자 변환)
   const [atTimeHour, atTimeMinute] = (localTrigger.time ?? "07:00")
     .split(":")
@@ -103,14 +115,14 @@ export default function TriggerEditor({
                     key={step.id}
                     style={[
                       styles.typeButton,
-                      localTrigger.targetStepId === step.id &&
+                      localTrigger.targetStepIds?.includes(step.id) &&
                         styles.typeButtonActive,
                     ]}
-                    onPress={() => update("targetStepId", step.id)}
+                    onPress={() => toggleTargetStep(step.id)}
                   >
                     <Text
                       style={
-                        localTrigger.targetStepId === step.id
+                        localTrigger.targetStepIds?.includes(step.id)
                           ? styles.typeButtonTextActive
                           : styles.typeButtonText
                       }
