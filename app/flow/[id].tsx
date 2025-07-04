@@ -1,9 +1,9 @@
 // app/flow/[id].tsx
-import { useNavigation, Link, useLocalSearchParams } from 'expo-router';
-import { useEffect, useLayoutEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { getFlowById } from '@/lib/flowRepository';
-import { Flow } from '@/lib/types';
+import { useNavigation, Link, useLocalSearchParams } from "expo-router";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { View, Text, Button, StyleSheet } from "react-native";
+import { getFlowById } from "@/lib/flowRepository";
+import { Flow } from "@/lib/types";
 
 export default function FlowDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -11,12 +11,15 @@ export default function FlowDetailScreen() {
   const [flow, setFlow] = useState<Flow | null>(null);
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: '플로우' });
+    navigation.setOptions({ title: "플로우" });
   }, []);
-  
+
   useEffect(() => {
-    if (id) {
-      getFlowById(Number(id)).then(setFlow);
+    const flowId = Number(id);
+    if (!isNaN(flowId)) {
+      getFlowById(flowId).then((f) => {
+        if (f) setFlow(f);
+      });
     }
   }, [id]);
 
@@ -35,6 +38,6 @@ export default function FlowDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: 16 },
-  name: { fontSize: 20, fontWeight: '600' },
-  desc: { marginVertical: 8, color: '#666' },
+  name: { fontSize: 20, fontWeight: "600" },
+  desc: { marginVertical: 8, color: "#666" },
 });

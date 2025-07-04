@@ -1,9 +1,16 @@
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { useEffect, useLayoutEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { getFlowById } from '@/lib/flowRepository';
-import { Flow } from '@/lib/types';
-import FlowScheduler, { StepStatus } from '@/lib/scheduler';
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useEffect, useLayoutEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { getFlowById } from "@/lib/flowRepository";
+import { Flow } from "@/lib/types";
+import FlowScheduler, { StepStatus } from "@/lib/scheduler";
 
 export default function RunFlowScreen() {
   const { id } = useLocalSearchParams();
@@ -13,7 +20,7 @@ export default function RunFlowScreen() {
   const [scheduler, setScheduler] = useState<FlowScheduler | null>(null);
 
   useLayoutEffect(() => {
-    navigation.setOptions({ title: '플로우 실행' });
+    navigation.setOptions({ title: "플로우 실행" });
   }, []);
 
   useEffect(() => {
@@ -21,7 +28,7 @@ export default function RunFlowScreen() {
       getFlowById(Number(id)).then((f) => {
         setFlow(f);
         const statusMap: Record<number, StepStatus> = {};
-        f.steps.forEach((s) => (statusMap[s.id] = 'pending'));
+        f.steps.forEach((s) => (statusMap[s.id] = "pending"));
         setStatuses(statusMap);
         const sch = new FlowScheduler(f);
         sch.start();
@@ -33,14 +40,16 @@ export default function RunFlowScreen() {
   if (!flow) return null;
 
   const handleComplete = async (stepId: number) => {
-    const updated = { ...statuses, [stepId]: 'completed' as StepStatus };
+    const updated = { ...statuses, [stepId]: "completed" as StepStatus };
     setStatuses(updated);
     await scheduler?.completeStep(stepId, updated);
   };
 
-  const progress =
-    (Object.values(statuses).filter((s) => s === 'completed').length /
-      flow.steps.length) * 100;
+  const progress = flow?.steps?.length
+    ? (Object.values(statuses).filter((s) => s === "completed").length /
+        flow.steps.length) *
+      100
+    : 0;
 
   return (
     <View style={{ flex: 1 }}>
@@ -55,8 +64,11 @@ export default function RunFlowScreen() {
               <Text style={styles.stepName}>{step.name}</Text>
               <Text style={styles.stepStatus}>{statuses[step.id]}</Text>
             </View>
-            {statuses[step.id] !== 'completed' && (
-              <TouchableOpacity onPress={() => handleComplete(step.id)} style={styles.button}>
+            {statuses[step.id] !== "completed" && (
+              <TouchableOpacity
+                onPress={() => handleComplete(step.id)}
+                style={styles.button}
+              >
                 <Text style={styles.buttonText}>완료</Text>
               </TouchableOpacity>
             )}
@@ -69,23 +81,23 @@ export default function RunFlowScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: 16 },
-  header: { padding: 16, borderBottomWidth: 1, borderColor: '#ccc' },
-  title: { fontSize: 20, fontWeight: '600' },
+  header: { padding: 16, borderBottomWidth: 1, borderColor: "#ccc" },
+  title: { fontSize: 20, fontWeight: "600" },
   stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: "#eee",
   },
   stepName: { fontSize: 16 },
-  stepStatus: { color: '#666', marginTop: 4 },
+  stepStatus: { color: "#666", marginTop: 4 },
   button: {
-    backgroundColor: '#6200ee',
+    backgroundColor: "#6200ee",
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
   },
-  buttonText: { color: '#fff' },
+  buttonText: { color: "#fff" },
 });
