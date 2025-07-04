@@ -20,6 +20,8 @@ export function mapDbToFlow(
     steps: steps.map((step) => ({
       id: step.id,
       name: step.name,
+      description: step.description,
+      position: step.position,
       triggers: step.triggers.map((t) => ({
         id: t.id,
         type: t.type as TriggerType,
@@ -46,7 +48,7 @@ export async function getFlowById(id: number): Promise<Flow> {
   if (!flowRow) throw new Error("Flow not found");
 
   const stepRows = await db.getAllAsync<StepRow>(
-    `SELECT * FROM step WHERE flow_id = ?`,
+    `SELECT * FROM step WHERE flow_id = ? ORDER BY position`,
     [id]
   );
 
@@ -84,8 +86,8 @@ export async function saveFlow(
 
     for (const step of steps) {
       const stepResult = await db.runAsync(
-        `INSERT INTO step (flow_id, name, description) VALUES (?, ?, ?)`,
-        [flowId, step.name, step.description ?? ""]
+        `INSERT INTO step (flow_id, name, description, position) VALUES (?, ?, ?, ?)`,
+        [flowId, step.name, step.description ?? "", step.position]
       );
       const stepId = stepResult.lastInsertRowId;
 
@@ -159,8 +161,8 @@ async function saveSteps(flowId: number, steps: Step[]) {
 
   for (const step of steps) {
     const result = await db.runAsync(
-      `INSERT INTO step (flow_id, name) VALUES (?, ?)`,
-      [flowId, step.name]
+      `INSERT INTO step (flow_id, name, description, position) VALUES (?, ?, ?, ?)`,
+      [flowId, step.name, step.description ?? "", step.position]
     );
     const stepId = result.lastInsertRowId as number;
 

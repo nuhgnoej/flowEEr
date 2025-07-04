@@ -9,6 +9,7 @@ export type StepRow = {
   name: string;
   description: string;
   flow_id: number;
+  position: number;
 };
 
 export type TriggerRow = {
@@ -33,6 +34,7 @@ export type Step = {
   description?: string;
   triggers: Trigger[];
   representativeTime?: string;
+  position: number;
 };
 
 export type Trigger = {

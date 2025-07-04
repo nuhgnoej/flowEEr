@@ -19,7 +19,9 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
   const [description, setDescription] = useState(
     initialFlow?.description || ""
   );
-  const [steps, setSteps] = useState<Step[]>(initialFlow?.steps || []);
+  const [steps, setSteps] = useState<Step[]>(
+    initialFlow?.steps?.sort((a, b) => a.position - b.position) || []
+  );
 
   const [stepModalVisible, setStepModalVisible] = useState(false);
   const [editingStep, setEditingStep] = useState<Step | null>(null);
@@ -32,6 +34,7 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
         id: Date.now(),
         name: "",
         triggers: [],
+        position: steps.length,
       };
       setEditingStep(newStep);
     }
@@ -41,17 +44,23 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
   const handleSaveStep = (updatedStep: Step) => {
     setSteps((prev) => {
       const index = prev.findIndex((s) => s.id === updatedStep.id);
+      let next = [] as Step[];
       if (index >= 0) {
-        const copy = [...prev];
-        copy[index] = updatedStep;
-        return copy;
+        next = [...prev];
+        next[index] = { ...updatedStep, position: index };
+      } else {
+        next = [...prev, { ...updatedStep, position: prev.length }];
       }
-      return [...prev, updatedStep];
+      return next.map((s, i) => ({ ...s, position: i }));
     });
   };
 
   const handleRemoveStep = (id: number) => {
-    setSteps(steps.filter((s) => s.id !== id));
+    setSteps((prev) =>
+      prev
+        .filter((s) => s.id !== id)
+        .map((s, i) => ({ ...s, position: i }))
+    );
   };
 
   const handleSaveFlow = () => {
@@ -61,7 +70,11 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
     }
 
     try {
-      onSave(flowName, description, steps);
+      const ordered = steps
+        .slice()
+        .sort((a, b) => a.position - b.position)
+        .map((s, i) => ({ ...s, position: i }));
+      onSave(flowName, description, ordered);
     } catch (e) {
       if (e instanceof Error) {
         console.error("SAVE ERROR", e);
@@ -104,7 +117,10 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
           <Text style={{ color: "#888" }}>스텝이 없습니다.</Text>
         )}
 
-        {steps.map((step, index) => {
+        {steps
+          .slice()
+          .sort((a, b) => a.position - b.position)
+          .map((step, index) => {
           const triggerSummary =
             step.triggers.length > 0
               ? step.triggers.map((t) => TRIGGER_TYPE_LABELS[t.type] || t.type).join(", ")
