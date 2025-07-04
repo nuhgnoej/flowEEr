@@ -43,6 +43,7 @@ export default function StepEditorModal({
       id: Date.now().toString(),
       type: "at_time",
       time: "07:00",
+      targetStepIds: [],
     };
     setEditingTrigger(newTrigger);
     setTriggerModalVisible(true);
@@ -117,9 +118,12 @@ export default function StepEditorModal({
                   <Text style={{ flex: 1 }}>{TRIGGER_TYPE_LABELS[t.type] || t.type}</Text>
                   <Text style={{ flex: 1 }}>
                     대상:{" "}
-                    {t.targetStepId
-                      ? allSteps.find((s) => s.id === t.targetStepId)?.name ||
-                        t.targetStepId
+                    {t.targetStepIds && t.targetStepIds.length > 0
+                      ? t.targetStepIds
+                          .map(
+                            (id) => allSteps.find((s) => s.id === id)?.name || id
+                          )
+                          .join(", ")
                       : "없음"}
                   </Text>
                   <Text style={{ flex: 1 }}>+{t.offset ?? 0}s</Text>

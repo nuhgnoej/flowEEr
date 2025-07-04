@@ -13,7 +13,7 @@ export default function FlowDetailScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({ title: '플로우' });
   }, []);
-
+  
   useEffect(() => {
     if (id) {
       getFlowById(Number(id)).then(setFlow);
