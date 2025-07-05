@@ -91,27 +91,47 @@ export default function RunFlowScreen() {
     : 0;
 
   const renderStepRow = (step: StepState) => {
-    console.log(
-      `[step: ${step.name}] expectedTime:`,
-      step.expectedTime,
-      "typeof:",
-      typeof step.expectedTime
-    );
+    const isCompleted = step.status === "completed";
+    const isInProgress = step.status === "in_progress";
+
     return (
-      <View key={step.id} style={styles.stepRow}>
-        <Text style={styles.stepTime}>{formatTime(step.expectedTime)}</Text>
+      <View
+        key={step.id}
+        style={[
+          styles.stepCard,
+          isCompleted && styles.stepCardCompleted,
+          isInProgress && styles.stepCardInProgress,
+        ]}
+      >
+        <Text
+          style={[
+            styles.stepTime,
+            step.expectedTime && step.expectedTime < new Date()
+              ? styles.stepTimeLate
+              : null,
+          ]}
+        >
+          {formatTime(step.expectedTime)}
+        </Text>
+
         <View style={{ flex: 1 }}>
-          <Text style={styles.stepName}>{step.name}</Text>
-          <Text style={styles.stepStatus}>{step.status}</Text>
+          <Text
+            style={[styles.stepName, isCompleted && styles.stepTextCompleted]}
+          >
+            {step.name}
+          </Text>
+          <Text
+            style={[styles.stepStatus, isCompleted && styles.stepTextCompleted]}
+          >
+            {step.status}
+          </Text>
         </View>
+
         <View style={{ flexDirection: "row" }}>
           {step.status === "ready" && (
             <TouchableOpacity
               onPress={() => handleStartStep(step.id)}
-              style={[
-                styles.button,
-                { backgroundColor: "#009688", marginRight: 8 },
-              ]}
+              style={[styles.button, { backgroundColor: "#009688" }]}
             >
               <Text style={styles.buttonText}>시작</Text>
             </TouchableOpacity>
@@ -119,7 +139,7 @@ export default function RunFlowScreen() {
           {step.status === "in_progress" && (
             <TouchableOpacity
               onPress={() => handleComplete(step.id)}
-              style={styles.button}
+              style={[styles.button, { backgroundColor: "#6200ee" }]}
             >
               <Text style={styles.buttonText}>완료</Text>
             </TouchableOpacity>
@@ -144,8 +164,8 @@ export default function RunFlowScreen() {
         <Text>{progress.toFixed(0)}% 완료</Text>
       </View>
       <ScrollView style={styles.container}>
-        {ready.map(renderStepRow)}
         {inProgress.map(renderStepRow)}
+        {ready.map(renderStepRow)}
         {waiting.map(renderStepRow)}
         {completed.map(renderStepRow)}
       </ScrollView>
@@ -165,8 +185,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#eee",
   },
-  stepName: { fontSize: 16 },
-  stepStatus: { color: "#666", marginTop: 4 },
+
   button: {
     backgroundColor: "#6200ee",
     paddingVertical: 6,
@@ -174,9 +193,57 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   buttonText: { color: "#fff" },
+  stepCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    marginVertical: 8,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  stepCardCompleted: {
+    backgroundColor: "#f0f0f0",
+  },
+
+  stepCardInProgress: {
+    borderWidth: 2,
+    borderColor: "#6200ee",
+    shadowColor: "#6200ee",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  stepName: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+
+  stepStatus: {
+    color: "#666",
+    marginTop: 4,
+  },
+
+  stepTextCompleted: {
+    textDecorationLine: "line-through",
+    color: "#999",
+  },
+
   stepTime: {
     width: 60,
     fontSize: 14,
     color: "#555",
+  },
+
+  stepTimeLate: {
+    color: "#d32f2f",
+    fontWeight: "600",
   },
 });

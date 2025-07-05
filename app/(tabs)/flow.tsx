@@ -36,7 +36,7 @@ export default function FlowScreen() {
   const handleEdit = (id: number) => {
     const route = `/flow/${id}/edit` as const;
     router.push(route);
-  }
+  };
 
   const handleDelete = (id: number) => {
     Alert.alert(
@@ -90,7 +90,7 @@ export default function FlowScreen() {
 
         {flows.map((flow) => (
           <View key={flow.id} style={styles.itemRow}>
-            <Link href={`/flow/${flow.id}`} asChild>
+            <Link href={`/flow/${flow.id}/run`} asChild>
               <TouchableOpacity style={styles.itemContent}>
                 <Text style={styles.name}>{flow.name}</Text>
                 <Text style={styles.description}>
@@ -99,7 +99,10 @@ export default function FlowScreen() {
               </TouchableOpacity>
             </Link>
 
-            <Pressable onPress={() => handleEdit(flow.id)} style={styles.deleteButton}>
+            <Pressable
+              onPress={() => handleEdit(flow.id)}
+              style={styles.deleteButton}
+            >
               <Ionicons name="create-outline" size={24} color="#333" />
             </Pressable>
 
