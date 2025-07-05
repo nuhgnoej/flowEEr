@@ -25,7 +25,7 @@ export async function initDatabase() {
 
   await db.runAsync(
     `CREATE TABLE IF NOT EXISTS step (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY,
         flow_id INTEGER NOT NULL,
         name TEXT NOT NULL,
         description TEXT,
@@ -35,7 +35,7 @@ export async function initDatabase() {
   );
 
   await db.runAsync(
-    `CREATE TABLE IF NOT EXISTS trigger (
+    `CREATE TABLE IF NOT EXISTS step_trigger (
         id TEXT PRIMARY KEY,
         step_id INTEGER NOT NULL,
         type TEXT NOT NULL,

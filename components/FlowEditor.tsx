@@ -57,13 +57,12 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
 
   const handleRemoveStep = (id: number) => {
     setSteps((prev) =>
-      prev
-        .filter((s) => s.id !== id)
-        .map((s, i) => ({ ...s, position: i }))
+      prev.filter((s) => s.id !== id).map((s, i) => ({ ...s, position: i }))
     );
   };
 
   const handleSaveFlow = () => {
+    console.log("✅ handleSaveFlow 호출됨");
     if (!flowName.trim()) {
       alert("플로우 이름을 입력하세요.");
       return;
@@ -74,15 +73,19 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
         .slice()
         .sort((a, b) => a.position - b.position)
         .map((s, i) => ({ ...s, position: i }));
+
+      console.log("🚀 저장할 flow:", {
+        name: flowName,
+        desc: description,
+        steps: ordered,
+      });
+
       onSave(flowName, description, ordered);
     } catch (e) {
-      if (e instanceof Error) {
-        console.error("SAVE ERROR", e);
-        alert("저장 중 오류 발생: " + e.message);
-      } else {
-        console.error("Unknown error", e);
-        alert("알 수 없는 오류 발생");
-      }
+      console.error("SAVE ERROR", e);
+      alert(
+        "저장 중 오류 발생: " + (e instanceof Error ? e.message : "unknown")
+      );
     }
   };
 
@@ -121,28 +124,30 @@ export default function FlowEditor({ initialFlow, onSave }: FlowEditorProps) {
           .slice()
           .sort((a, b) => a.position - b.position)
           .map((step, index) => {
-          const triggerSummary =
-            step.triggers.length > 0
-              ? step.triggers.map((t) => TRIGGER_TYPE_LABELS[t.type] || t.type).join(", ")
-              : "트리거 없음";
+            const triggerSummary =
+              step.triggers.length > 0
+                ? step.triggers
+                    .map((t) => TRIGGER_TYPE_LABELS[t.type] || t.type)
+                    .join(", ")
+                : "트리거 없음";
 
-          return (
-            <View key={step.id} style={styles.stepRow}>
-              <TouchableOpacity
-                style={{ flex: 1 }}
-                onPress={() => openStepEditor(step)}
-              >
-                <Text style={styles.stepName}>
-                  {index + 1}. {step.name || "(이름 없음)"}
-                </Text>
-                <Text style={styles.triggerSummary}>{triggerSummary}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleRemoveStep(step.id)}>
-                <Ionicons name="trash-outline" size={20} color="red" />
-              </TouchableOpacity>
-            </View>
-          );
-        })}
+            return (
+              <View key={step.id} style={styles.stepRow}>
+                <TouchableOpacity
+                  style={{ flex: 1 }}
+                  onPress={() => openStepEditor(step)}
+                >
+                  <Text style={styles.stepName}>
+                    {index + 1}. {step.name || "(이름 없음)"}
+                  </Text>
+                  <Text style={styles.triggerSummary}>{triggerSummary}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleRemoveStep(step.id)}>
+                  <Ionicons name="trash-outline" size={20} color="red" />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
 
         <TouchableOpacity
           onPress={() => openStepEditor()}
