@@ -54,6 +54,11 @@ export default function RunFlowScreen() {
     }
   }, [flow, engine]);
 
+  const formatTime = (date?: Date) => {
+    if (!date) return "";
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   const refreshUI = () => {
     if (!engine) return;
     const ui = engine.getUIState();
@@ -85,35 +90,44 @@ export default function RunFlowScreen() {
     ? (completed.length / flow.steps.length) * 100
     : 0;
 
-  const renderStepRow = (step: StepState) => (
-    <View key={step.id} style={styles.stepRow}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.stepName}>{step.name}</Text>
-        <Text style={styles.stepStatus}>{step.status}</Text>
+  const renderStepRow = (step: StepState) => {
+    console.log(
+      `[step: ${step.name}] expectedTime:`,
+      step.expectedTime,
+      "typeof:",
+      typeof step.expectedTime
+    );
+    return (
+      <View key={step.id} style={styles.stepRow}>
+        <Text style={styles.stepTime}>{formatTime(step.expectedTime)}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.stepName}>{step.name}</Text>
+          <Text style={styles.stepStatus}>{step.status}</Text>
+        </View>
+        <View style={{ flexDirection: "row" }}>
+          {step.status === "ready" && (
+            <TouchableOpacity
+              onPress={() => handleStartStep(step.id)}
+              style={[
+                styles.button,
+                { backgroundColor: "#009688", marginRight: 8 },
+              ]}
+            >
+              <Text style={styles.buttonText}>시작</Text>
+            </TouchableOpacity>
+          )}
+          {step.status === "in_progress" && (
+            <TouchableOpacity
+              onPress={() => handleComplete(step.id)}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>완료</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      <View style={{ flexDirection: "row" }}>
-        {step.status === "ready" && (
-          <TouchableOpacity
-            onPress={() => handleStartStep(step.id)}
-            style={[
-              styles.button,
-              { backgroundColor: "#009688", marginRight: 8 },
-            ]}
-          >
-            <Text style={styles.buttonText}>시작</Text>
-          </TouchableOpacity>
-        )}
-        {step.status === "in_progress" && (
-          <TouchableOpacity
-            onPress={() => handleComplete(step.id)}
-            style={styles.button}
-          >
-            <Text style={styles.buttonText}>완료</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
+    );
+  };
 
   if (!flow || !engine) {
     return (
@@ -160,4 +174,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   buttonText: { color: "#fff" },
+  stepTime: {
+    width: 60,
+    fontSize: 14,
+    color: "#555",
+  },
 });
