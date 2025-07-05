@@ -1,16 +1,21 @@
-import * as Notifications from 'expo-notifications';
-import { Flow, Step, Trigger } from './types';
+import * as Notifications from "expo-notifications";
+import { Flow, Step } from "./types";
+import {
+  NotificationTriggerInput,
+  SchedulableTriggerInputTypes,
+} from "expo-notifications";
 
-export type StepStatus = 'pending' | 'completed' | 'scheduled';
+export type StepStatus = "pending" | "completed" | "scheduled";
 
 export default class FlowScheduler {
   private scheduledSteps = new Set<number>();
+
   constructor(private flow: Flow) {}
 
   async start() {
     for (const step of this.flow.steps) {
       for (const trigger of step.triggers) {
-        if (trigger.type === 'at_time' && trigger.time) {
+        if (trigger.type === "at_time" && trigger.time) {
           const date = this.parseTime(trigger.time);
           await this.scheduleNotification(step, date);
         }
@@ -20,22 +25,34 @@ export default class FlowScheduler {
 
   async completeStep(stepId: number, statuses: Record<number, StepStatus>) {
     for (const step of this.flow.steps) {
-      if (this.scheduledSteps.has(step.id) || statuses[step.id] === 'completed') {
+      if (
+        this.scheduledSteps.has(step.id) ||
+        statuses[step.id] === "completed"
+      ) {
         continue;
       }
+
       for (const trigger of step.triggers) {
-        if (trigger.type === 'after' && trigger.targetStepId === stepId) {
+        if (
+          trigger.type === "after" &&
+          trigger.targetStepIds?.includes(stepId)
+        ) {
           await this.scheduleNotification(step);
           break;
         }
-        if (trigger.type === 'delay' && trigger.targetStepId === stepId) {
+
+        if (
+          trigger.type === "delay" &&
+          trigger.targetStepIds?.includes(stepId)
+        ) {
           await this.scheduleNotification(step, undefined, trigger.offset ?? 0);
           break;
         }
+
         if (
-          trigger.type === 'end' &&
+          trigger.type === "end" &&
           this.flow.steps.every((s) =>
-            s.id === step.id ? true : statuses[s.id] === 'completed'
+            s.id === step.id ? true : statuses[s.id] === "completed"
           )
         ) {
           await this.scheduleNotification(step);
@@ -46,7 +63,7 @@ export default class FlowScheduler {
   }
 
   private parseTime(time: string) {
-    const [h, m] = time.split(':').map((v) => parseInt(v, 10) || 0);
+    const [h, m] = time.split(":").map((v) => parseInt(v, 10) || 0);
     const now = new Date();
     let date = new Date(
       now.getFullYear(),
@@ -63,14 +80,33 @@ export default class FlowScheduler {
     return date;
   }
 
-  private async scheduleNotification(step: Step, date?: Date, seconds?: number) {
+  private async scheduleNotification(
+    step: Step,
+    date?: Date,
+    seconds?: number
+  ) {
+    let trigger: NotificationTriggerInput;
+
+    if (date) {
+      trigger = {
+        type: SchedulableTriggerInputTypes.DATE,
+        date,
+      };
+    } else {
+      trigger = {
+        type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: seconds ?? 0,
+      };
+    }
+
     const identifier = await Notifications.scheduleNotificationAsync({
       content: {
         title: step.name,
-        body: step.description || 'Step triggered',
+        body: step.description || "Step triggered",
       },
-      trigger: date ?? { seconds: seconds ?? 0 },
+      trigger,
     });
+
     this.scheduledSteps.add(step.id);
     return identifier;
   }
