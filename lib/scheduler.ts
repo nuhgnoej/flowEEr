@@ -1,11 +1,13 @@
+// lib/scheduler.ts
 import * as Notifications from "expo-notifications";
 import { Flow, Step } from "./types";
 import {
   NotificationTriggerInput,
   SchedulableTriggerInputTypes,
 } from "expo-notifications";
+import { StepState } from "./FlowEngine";
 
-export type StepStatus = "pending" | "completed" | "scheduled";
+export type StepStatus = "waiting" | "ready" | "in_progress" | "completed";
 
 export default class FlowScheduler {
   private scheduledSteps = new Set<number>();
@@ -78,6 +80,14 @@ export default class FlowScheduler {
       date.setDate(date.getDate() + 1);
     }
     return date;
+  }
+
+  public async scheduleStep(stepState: StepState) {
+    const originalStep = this.flow.steps.find((s) => s.id === stepState.id);
+    if (!originalStep) return;
+
+    const date = stepState.readyTime;
+    await this.scheduleNotification(originalStep, date);
   }
 
   private async scheduleNotification(
