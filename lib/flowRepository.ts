@@ -74,6 +74,7 @@ export async function saveFlow(
   steps: Step[]
 ) {
   const db = await getDatabase();
+  console.log("saveFlow호출됨");
 
   try {
     await db.runAsync("BEGIN TRANSACTION");
@@ -85,12 +86,14 @@ export async function saveFlow(
     const flowId = flowResult.lastInsertRowId;
 
     for (const step of steps) {
-      const stepResult = await db.runAsync(
+      // console.log(`플로우아이디: ${flowId}`);
+      await db.runAsync(
         `INSERT INTO step (id, flow_id, name, description, position) VALUES (?, ?, ?, ?, ?)`,
         [step.id, flowId, step.name, step.description ?? "", step.position]
       );
 
       for (const trigger of step.triggers) {
+        // console.log(`스텝아이디: ${step.id}`);
         await db.runAsync(
           `INSERT INTO step_trigger (id, step_id, type, target_step_ids, offset, time)
            VALUES (?, ?, ?, ?, ?, ?)`,
@@ -111,7 +114,7 @@ export async function saveFlow(
     await db.runAsync("COMMIT");
   } catch (error) {
     await db.runAsync("ROLLBACK");
-    console.log("데이터베이스 에러 발생");
+    console.log("데이터베이스 에러 발생: ", error);
     throw error;
   }
 }
@@ -136,6 +139,7 @@ export async function updateFlow(
   const db = await getDatabase();
 
   try {
+    console.log("updateFlow호출됨");
     await db.runAsync("BEGIN TRANSACTION");
     await db.runAsync(
       `UPDATE flow SET name = ?, description = ? WHERE id = ?`,
@@ -149,7 +153,7 @@ export async function updateFlow(
     await db.runAsync("COMMIT");
   } catch (error) {
     await db.runAsync("ROLLBACK");
-    console.log("데이터베이스 에러 발생");
+    console.log("데이터베이스 에러 발생: ", error);
     throw error;
   }
 }
@@ -161,18 +165,19 @@ async function saveSteps(flowId: number, steps: Step[]) {
   const db = await getDatabase();
 
   for (const step of steps) {
-    const result = await db.runAsync(
+    // console.log(`그냥 : ${step.id}`);
+    await db.runAsync(
       `INSERT INTO step (id, flow_id, name, description, position) VALUES (?, ?, ?, ?, ?)`,
       [step.id, flowId, step.name, step.description ?? "", step.position]
     );
-    const stepId = result.lastInsertRowId as number;
 
     for (const trigger of step.triggers) {
+      // console.log(`lastInserRowId: ${step.id}`);
       await db.runAsync(
         `INSERT INTO step_trigger (step_id, type, target_step_ids, offset, time, id)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
-          stepId,
+          step.id,
           trigger.type,
           trigger.targetStepIds && trigger.targetStepIds.length > 0
             ? JSON.stringify(trigger.targetStepIds)

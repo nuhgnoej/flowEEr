@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Step, Trigger, TRIGGER_TYPE_LABELS, TriggerType } from "@/lib/types";
 import TriggerEditor from "./TriggerEditor";
+import uuid from "react-native-uuid";
 
 interface Props {
   visible: boolean;
@@ -39,8 +40,9 @@ export default function StepEditorModal({
   }, [step]);
 
   const handleAddTrigger = () => {
+    const id = uuid.v4();
     const newTrigger: Trigger = {
-      id: Date.now().toString(),
+      id,
       type: "at_time",
       time: "07:00",
       targetStepIds: [],
@@ -82,7 +84,6 @@ export default function StepEditorModal({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-
         {/* 바깥 눌렀을 때 닫히는 투명 레이어 */}
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={StyleSheet.absoluteFill} />
@@ -115,13 +116,16 @@ export default function StepEditorModal({
                   style={{ flex: 4, flexDirection: "row" }}
                   onPress={() => handleEditTrigger(t)}
                 >
-                  <Text style={{ flex: 1 }}>{TRIGGER_TYPE_LABELS[t.type] || t.type}</Text>
+                  <Text style={{ flex: 1 }}>
+                    {TRIGGER_TYPE_LABELS[t.type] || t.type}
+                  </Text>
                   <Text style={{ flex: 1 }}>
                     대상:{" "}
                     {t.targetStepIds && t.targetStepIds.length > 0
                       ? t.targetStepIds
                           .map(
-                            (id) => allSteps.find((s) => s.id === id)?.name || id
+                            (id) =>
+                              allSteps.find((s) => s.id === id)?.name || id
                           )
                           .join(", ")
                       : "없음"}
