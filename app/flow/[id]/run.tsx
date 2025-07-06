@@ -1,7 +1,7 @@
 // app/(tabs)/[id]/run.tsx
 
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,13 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { getFlowById } from "@/lib/flowRepository";
-import { Flow } from "@/lib/types";
+import { Flow, Step } from "@/lib/types";
 import { useFlowEngine } from "@/hooks/useFlowEngine";
 import FlowScheduler from "@/lib/scheduler";
 import type { StepState } from "@/lib/FlowEngine";
+import StepEditorModal from "@/components/StepEditorModal";
+import { Ionicons } from "@expo/vector-icons";
+import StepDetailModal from "@/components/StepDetailModal";
 
 export default function RunFlowScreen() {
   const { id } = useLocalSearchParams();
@@ -24,8 +27,12 @@ export default function RunFlowScreen() {
   const [waiting, setWaiting] = useState<StepState[]>([]);
   const [inProgress, setInProgress] = useState<StepState[]>([]);
   const [completed, setCompleted] = useState<StepState[]>([]);
+  const [editorVisible, setEditorVisible] = useState(false);
+  const [editingStep, setEditingStep] = useState<Step | null>(null);
+  const [detailStep, setDetailStep] = useState<StepState | null>(null);
+  const [detailVisible, setDetailVisible] = useState(false);
 
-  const engine = useFlowEngine(flow); // flow가 null이면 engine도 null
+  const engine = useFlowEngine(flow);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: "플로우 실행" });
@@ -33,7 +40,7 @@ export default function RunFlowScreen() {
 
   useEffect(() => {
     if (id) {
-      console.log("라우팅된 ID:", id);
+      // console.log("라우팅된 ID:", id);
       getFlowById(Number(id)).then((f) => {
         setFlow(f);
         setScheduler(new FlowScheduler(f));
@@ -41,18 +48,29 @@ export default function RunFlowScreen() {
     }
   }, [id]);
 
+  // useEffect(() => {
+  //   if (flow && engine) {
+  //     const ui = engine.getUIState();
+  //     console.log("초기 UI 상태:", ui);
+  //     setReady(ui.ready);
+  //     setWaiting(ui.waiting);
+  //     setInProgress(ui.in_progress);
+  //     setCompleted(ui.completed);
+  //   } else {
+  //     console.log("flow 없음 또는 engine 없음");
+  //   }
+  // }, [flow, engine]);
+
   useEffect(() => {
-    if (flow && engine) {
-      const ui = engine.getUIState();
-      console.log("초기 UI 상태:", ui);
-      setReady(ui.ready);
-      setWaiting(ui.waiting);
-      setInProgress(ui.in_progress);
-      setCompleted(ui.completed);
-    } else {
-      console.log("flow 없음 또는 engine 없음");
-    }
-  }, [flow, engine]);
+    if (!engine) return; // guard clause
+
+    const ui = engine.getUIState();
+    console.log("초기 UI 상태:", ui);
+    setReady(ui.ready);
+    setWaiting(ui.waiting);
+    setInProgress(ui.in_progress);
+    setCompleted(ui.completed);
+  }, [engine]);
 
   const formatTime = (date?: Date) => {
     if (!date) return "";
@@ -90,62 +108,100 @@ export default function RunFlowScreen() {
     ? (completed.length / flow.steps.length) * 100
     : 0;
 
+  const handleEditStep = (stepId: number) => {
+    const original = flow?.steps.find((s) => s.id === stepId);
+    if (original) {
+      setEditingStep(original);
+      setEditorVisible(true);
+    }
+  };
+
+  const handleOpenDetail = (step: StepState) => {
+    // StepDetailModal 띄우기용 상태 추가 예정
+    console.log("상세 보기:", step.name);
+  };
+
   const renderStepRow = (step: StepState) => {
     const isCompleted = step.status === "completed";
     const isInProgress = step.status === "in_progress";
 
     return (
-      <View
-        key={step.id}
-        style={[
-          styles.stepCard,
-          isCompleted && styles.stepCardCompleted,
-          isInProgress && styles.stepCardInProgress,
-        ]}
+      <TouchableOpacity
+        onPress={() => {
+          setDetailStep(step);
+          setDetailVisible(true);
+        }}
       >
-        <Text
+        <View
+          key={step.id}
           style={[
-            styles.stepTime,
-            step.expectedTime && step.expectedTime < new Date()
-              ? styles.stepTimeLate
-              : null,
+            styles.stepCard,
+            isCompleted && styles.stepCardCompleted,
+            isInProgress && styles.stepCardInProgress,
           ]}
         >
-          {formatTime(step.expectedTime)}
-        </Text>
-
-        <View style={{ flex: 1 }}>
           <Text
-            style={[styles.stepName, isCompleted && styles.stepTextCompleted]}
+            style={[
+              styles.stepTime,
+              step.expectedTime && step.expectedTime < new Date()
+                ? styles.stepTimeLate
+                : null,
+            ]}
           >
-            {step.name}
+            {formatTime(step.expectedTime)}
           </Text>
-          <Text
-            style={[styles.stepStatus, isCompleted && styles.stepTextCompleted]}
-          >
-            {step.status}
-          </Text>
-        </View>
 
-        <View style={{ flexDirection: "row" }}>
-          {step.status === "ready" && (
-            <TouchableOpacity
-              onPress={() => handleStartStep(step.id)}
-              style={[styles.button, { backgroundColor: "#009688" }]}
+          <View style={{ flex: 1 }}>
+            <Text
+              style={[styles.stepName, isCompleted && styles.stepTextCompleted]}
             >
-              <Text style={styles.buttonText}>시작</Text>
-            </TouchableOpacity>
-          )}
-          {step.status === "in_progress" && (
-            <TouchableOpacity
-              onPress={() => handleComplete(step.id)}
-              style={[styles.button, { backgroundColor: "#6200ee" }]}
+              {step.name}
+            </Text>
+            <Text
+              style={[
+                styles.stepStatus,
+                isCompleted && styles.stepTextCompleted,
+              ]}
             >
-              <Text style={styles.buttonText}>완료</Text>
-            </TouchableOpacity>
-          )}
+              {step.status}
+            </Text>
+          </View>
+
+          {/* ✏️ 수정 버튼 */}
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation?.(); // 상위 터치 이벤트 막기
+              const original = flow?.steps.find((s) => s.id === step.id);
+              if (original) {
+                setEditingStep(original);
+                setEditorVisible(true);
+              }
+            }}
+            style={{ paddingHorizontal: 8, justifyContent: "center" }}
+          >
+            <Ionicons name="create-outline" size={20} color="#007bff" />
+          </TouchableOpacity>
+
+          <View style={{ flexDirection: "row" }}>
+            {step.status === "ready" && (
+              <TouchableOpacity
+                onPress={() => handleStartStep(step.id)}
+                style={[styles.button, { backgroundColor: "#009688" }]}
+              >
+                <Text style={styles.buttonText}>시작</Text>
+              </TouchableOpacity>
+            )}
+            {step.status === "in_progress" && (
+              <TouchableOpacity
+                onPress={() => handleComplete(step.id)}
+                style={[styles.button, { backgroundColor: "#6200ee" }]}
+              >
+                <Text style={styles.buttonText}>완료</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -164,11 +220,47 @@ export default function RunFlowScreen() {
         <Text>{progress.toFixed(0)}% 완료</Text>
       </View>
       <ScrollView style={styles.container}>
-        {inProgress.map(renderStepRow)}
-        {ready.map(renderStepRow)}
-        {waiting.map(renderStepRow)}
-        {completed.map(renderStepRow)}
+        {inProgress.map((step) => (
+          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+        ))}
+        {ready.map((step) => (
+          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+        ))}
+        {waiting.map((step) => (
+          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+        ))}
+        {completed.map((step) => (
+          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+        ))}
       </ScrollView>
+
+      {editingStep && (
+        <StepEditorModal
+          visible={editorVisible}
+          step={editingStep}
+          allSteps={flow?.steps || []}
+          onSave={(updatedStep) => {
+            // flow 업데이트
+            const updatedFlow = {
+              ...flow!,
+              steps: flow!.steps.map((s) =>
+                s.id === updatedStep.id ? updatedStep : s
+              ),
+            };
+            setFlow(updatedFlow);
+            setEditorVisible(false);
+          }}
+          onClose={() => setEditorVisible(false)}
+        />
+      )}
+
+      {detailStep && (
+        <StepDetailModal
+          visible={detailVisible}
+          step={detailStep}
+          onClose={() => setDetailVisible(false)}
+        />
+      )}
     </View>
   );
 }

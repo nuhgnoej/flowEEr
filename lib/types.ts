@@ -34,7 +34,7 @@ export type Step = {
   description?: string;
   triggers: Trigger[];
   representativeTime?: string;
-  position: number;
+  position: number;  
 };
 
 export type Trigger = {

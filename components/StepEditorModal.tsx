@@ -33,10 +33,12 @@ export default function StepEditorModal({
   const [triggers, setTriggers] = useState(step?.triggers || []);
   const [triggerModalVisible, setTriggerModalVisible] = useState(false);
   const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null);
+  const [description, setDescription] = useState(step?.description || "");
 
   useEffect(() => {
     setName(step?.name || "");
     setTriggers(step?.triggers || []);
+    setDescription(step?.description || "");
   }, [step]);
 
   const handleAddTrigger = () => {
@@ -78,6 +80,7 @@ export default function StepEditorModal({
       ...step,
       name: name.trim(),
       triggers,
+      description: description.trim(),
     });
   };
 
@@ -98,6 +101,23 @@ export default function StepEditorModal({
             placeholder="스텝 이름"
             value={name}
             onChangeText={setName}
+          />
+
+          <Text style={styles.description}>설명</Text>
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="스텝에 대한 설명을 입력하세요"
+            multiline
+            numberOfLines={3}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              borderRadius: 8,
+              padding: 8,
+              minHeight: 60,
+              textAlignVertical: "top",
+            }}
           />
 
           {/* 트리거 목록 */}
@@ -210,5 +230,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: 8,
+  },
+  description: {
+    marginTop: 12,
+    marginBottom: 4,
   },
 });

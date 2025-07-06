@@ -32,20 +32,13 @@ function HeaderTitle({
   iconName: React.ComponentProps<typeof Ionicons>["name"];
   label: string;
 }) {
-  
-
   return (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
-      <Ionicons
-        name={iconName}
-        size={20}
-               style={{ marginRight: 8 }}
-      />
+      <Ionicons name={iconName} size={20} style={{ marginRight: 8 }} />
       <Text
         style={{
           fontSize: 20,
           fontWeight: "600",
-          
         }}
       >
         {label}
@@ -55,14 +48,8 @@ function HeaderTitle({
 }
 
 export default function TabLayout() {
-  
-
   return (
-    <Tabs
-      screenOptions={{
-        
-      }}
-    >
+    <Tabs screenOptions={{}}>
       <Tabs.Screen
         name="index"
         options={{
@@ -83,7 +70,6 @@ export default function TabLayout() {
                   <Ionicons
                     name="information-circle-outline"
                     size={25}
-                   
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
@@ -101,23 +87,6 @@ export default function TabLayout() {
             <TabBarIcon
               name="repeat-outline"
               focusedName="repeat"
-              color={color}
-              focused={focused}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="step"
-        options={{
-          headerShown: true,
-          headerTitle: () => (
-            <HeaderTitle iconName="checkmark-done" label="My Steps" />
-          ),
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name="checkmark-done-outline"
-              focusedName="checkmark-done"
               color={color}
               focused={focused}
             />

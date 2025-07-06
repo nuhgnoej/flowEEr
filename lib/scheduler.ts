@@ -6,6 +6,7 @@ import {
   SchedulableTriggerInputTypes,
 } from "expo-notifications";
 import { StepState } from "./FlowEngine";
+import { parseTimeWithTimezone } from "./time";
 
 export type StepStatus = "waiting" | "ready" | "in_progress" | "completed";
 
@@ -18,7 +19,7 @@ export default class FlowScheduler {
     for (const step of this.flow.steps) {
       for (const trigger of step.triggers) {
         if (trigger.type === "at_time" && trigger.time) {
-          const date = this.parseTime(trigger.time);
+          const date = parseTimeWithTimezone(trigger.time);
           await this.scheduleNotification(step, date);
         }
       }
@@ -64,23 +65,23 @@ export default class FlowScheduler {
     }
   }
 
-  private parseTime(time: string) {
-    const [h, m] = time.split(":").map((v) => parseInt(v, 10) || 0);
-    const now = new Date();
-    let date = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      h,
-      m,
-      0,
-      0
-    );
-    if (date.getTime() <= now.getTime()) {
-      date.setDate(date.getDate() + 1);
-    }
-    return date;
-  }
+  // private parseTime(time: string) {
+  //   const [h, m] = time.split(":").map((v) => parseInt(v, 10) || 0);
+  //   const now = new Date();
+  //   let date = new Date(
+  //     now.getFullYear(),
+  //     now.getMonth(),
+  //     now.getDate(),
+  //     h,
+  //     m,
+  //     0,
+  //     0
+  //   );
+  //   if (date.getTime() <= now.getTime()) {
+  //     date.setDate(date.getDate() + 1);
+  //   }
+  //   return date;
+  // }
 
   public async scheduleStep(stepState: StepState) {
     const originalStep = this.flow.steps.find((s) => s.id === stepState.id);

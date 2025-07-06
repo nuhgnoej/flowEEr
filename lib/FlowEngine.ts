@@ -11,6 +11,7 @@ export interface StepState {
   readyTime?: Date;
   triggerInfo?: string;
   expectedTime?: Date;
+  description?: string;
 }
 
 export default class FlowEngine {
@@ -29,6 +30,7 @@ export default class FlowEngine {
         status,
         triggerInfo: this.describeTriggers(step),
         expectedTime: undefined,
+        description: step.description,
       });
     }
     this.calculateExpectedTimes();
