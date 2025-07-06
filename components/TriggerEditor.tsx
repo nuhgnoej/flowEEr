@@ -1,7 +1,15 @@
 // components/TriggerEditor.tsx
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Modal, View, Text, StyleSheet, Button, Pressable, TouchableWithoutFeedback } from "react-native";
+import {
+  Modal,
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  Pressable,
+  TouchableWithoutFeedback,
+} from "react-native";
 import WheelPicker from "react-native-wheely";
 import { Trigger, TriggerEditorProps, TriggerType } from "@/lib/types";
 import { TRIGGER_TYPES, TRIGGER_TYPE_LABELS } from "@/lib/types";
@@ -20,12 +28,9 @@ export default function TriggerEditor({
     setLocalTrigger(trigger);
   }, [trigger]);
 
-   const update = useCallback(
-    (field: keyof Trigger, value: any) => {
-      setLocalTrigger((prev) => ({ ...prev, [field]: value }));
-    },
-    []
-  );
+  const update = useCallback((field: keyof Trigger, value: any) => {
+    setLocalTrigger((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const handleSave = () => {
     onChange(localTrigger);
@@ -34,13 +39,22 @@ export default function TriggerEditor({
 
   // ⏱️ 오프셋 처리 (초 단위 → 시,분,초 분리)
   const offset = localTrigger.offset ?? 0;
-  const offsetHours = Math.floor(offset / 3600);
-  const offsetMinutes = Math.floor((offset % 3600) / 60);
-  const offsetSeconds = offset % 60;
+  const absOffset = Math.abs(offset);
+  const offsetHours = Math.floor(absOffset / 3600);
+  const offsetMinutes = Math.floor((absOffset % 3600) / 60);
+  const offsetSeconds = absOffset % 60;
 
+  const [offsetDirection, setOffsetDirection] = useState<"before" | "after">(
+    offset >= 0 ? "after" : "before"
+  );
+
+  // const setOffset = (h: number, m: number, s: number) => {
+  //   const total = h * 3600 + m * 60 + s;
+  //   update("offset", total);
+  // };
   const setOffset = (h: number, m: number, s: number) => {
     const total = h * 3600 + m * 60 + s;
-    update("offset", total);
+    update("offset", offsetDirection === "before" ? -total : total);
   };
 
   const toggleTargetStep = (id: number) => {
@@ -75,9 +89,7 @@ export default function TriggerEditor({
       onRequestClose={onClose}
       transparent
     >
-      
       <View style={styles.overlay}>
-
         {/* 바깥 눌렀을 때 닫기용 */}
         <TouchableWithoutFeedback onPress={onClose}>
           <View style={StyleSheet.absoluteFill} />
@@ -89,21 +101,19 @@ export default function TriggerEditor({
           {/* 트리거 타입 선택 */}
           <Text style={styles.label}>트리거 타입</Text>
           <View style={styles.typeRow}>
-          {TRIGGER_TYPES.map((type) => (
-            <TriggerTypeButton
-              key={type}
-              type={type}
-              active={localTrigger.type === type}
-              label={TRIGGER_TYPE_LABELS[type] || type}
-              onPress={() => update("type", type)}
-            />
-          ))}
+            {TRIGGER_TYPES.map((type) => (
+              <TriggerTypeButton
+                key={type}
+                type={type}
+                active={localTrigger.type === type}
+                label={TRIGGER_TYPE_LABELS[type] || type}
+                onPress={() => update("type", type)}
+              />
+            ))}
           </View>
 
           {/* 타겟 스텝 선택 */}
-          {(localTrigger.type === "after" ||
-            localTrigger.type === "delay" 
-           ) && (
+          {(localTrigger.type === "after" || localTrigger.type === "delay") && (
             <>
               <Text style={styles.label}>타겟 스텝</Text>
               {allSteps.length === 0 && (
@@ -136,9 +146,7 @@ export default function TriggerEditor({
           )}
 
           {/* 오프셋 시간 설정 */}
-          {["after", "delay"].includes(
-            localTrigger.type
-          ) && (
+          {["after", "delay"].includes(localTrigger.type) && (
             <>
               <Text style={styles.label}>오프셋 시간 (시:분:초)</Text>
               <View style={styles.pickerRow}>
@@ -162,6 +170,16 @@ export default function TriggerEditor({
                   onChange={(index) =>
                     setOffset(offsetHours, offsetMinutes, index)
                   }
+                />
+                <WheelPicker
+                  selectedIndex={offsetDirection === "before" ? 0 : 1}
+                  options={["전", "후"]}
+                  onChange={(index) => {
+                    const newDirection = index === 0 ? "before" : "after";
+                    setOffsetDirection(newDirection);
+                    // offset값 방향도 즉시 반영
+                    setOffset(offsetHours, offsetMinutes, offsetSeconds);
+                  }}
                 />
               </View>
             </>
