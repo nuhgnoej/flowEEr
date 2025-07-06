@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { getFlowById } from "@/lib/flowRepository";
 import { Flow, Step } from "@/lib/types";
@@ -17,6 +18,18 @@ import type { StepState } from "@/lib/FlowEngine";
 import StepEditorModal from "@/components/StepEditorModal";
 import { Ionicons } from "@expo/vector-icons";
 import StepDetailModal from "@/components/StepDetailModal";
+import { FloatingAction } from "react-native-floating-action";
+import { updateFlow } from "@/lib/flowRepository";
+
+const actions = [
+  {
+    text: "스텝 추가",
+    icon: <Ionicons name="add" size={24} color="#fff" />,
+    name: "bt_add_step",
+    position: 1,
+    color: "#6200ee", // FAB 색상
+  },
+];
 
 export default function RunFlowScreen() {
   const { id } = useLocalSearchParams();
@@ -32,7 +45,7 @@ export default function RunFlowScreen() {
   const [detailStep, setDetailStep] = useState<StepState | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
 
-  const engine = useFlowEngine(flow);
+  const { engine, refresh } = useFlowEngine(flow);
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: "플로우 실행" });
@@ -47,19 +60,6 @@ export default function RunFlowScreen() {
       });
     }
   }, [id]);
-
-  // useEffect(() => {
-  //   if (flow && engine) {
-  //     const ui = engine.getUIState();
-  //     console.log("초기 UI 상태:", ui);
-  //     setReady(ui.ready);
-  //     setWaiting(ui.waiting);
-  //     setInProgress(ui.in_progress);
-  //     setCompleted(ui.completed);
-  //   } else {
-  //     console.log("flow 없음 또는 engine 없음");
-  //   }
-  // }, [flow, engine]);
 
   useEffect(() => {
     if (!engine) return; // guard clause
@@ -104,22 +104,35 @@ export default function RunFlowScreen() {
     }
   };
 
-  const progress = flow?.steps?.length
-    ? (completed.length / flow.steps.length) * 100
-    : 0;
+  const handleSaveStep = async (updatedStep: Step) => {
+    if (!flow) return;
 
-  const handleEditStep = (stepId: number) => {
-    const original = flow?.steps.find((s) => s.id === stepId);
-    if (original) {
-      setEditingStep(original);
-      setEditorVisible(true);
+    const isNew = !flow.steps.some((s) => s.id === updatedStep.id);
+    const updatedSteps = isNew
+      ? [...flow.steps, updatedStep]
+      : flow.steps.map((s) => (s.id === updatedStep.id ? updatedStep : s));
+
+    const updatedFlow = { ...flow, steps: updatedSteps };
+
+    setFlow({ ...flow, steps: updatedSteps });
+    setEditorVisible(false);
+
+    try {
+      await updateFlow(
+        updatedFlow.id,
+        updatedFlow.name,
+        updatedFlow.description ?? "",
+        updatedFlow.steps
+      );
+      console.log("DB에 플로우 저장 완료");
+    } catch (error) {
+      console.error("스텝 저장 중 오류 발생:", error);
     }
   };
 
-  const handleOpenDetail = (step: StepState) => {
-    // StepDetailModal 띄우기용 상태 추가 예정
-    console.log("상세 보기:", step.name);
-  };
+  const progress = flow?.steps?.length
+    ? (completed.length / flow.steps.length) * 100
+    : 0;
 
   const renderStepRow = (step: StepState) => {
     const isCompleted = step.status === "completed";
@@ -177,7 +190,7 @@ export default function RunFlowScreen() {
                 setEditorVisible(true);
               }
             }}
-            style={{ paddingHorizontal: 8, justifyContent: "center" }}
+            style={[styles.iconButton, styles.editButton]}
           >
             <Ionicons name="create-outline" size={20} color="#007bff" />
           </TouchableOpacity>
@@ -186,7 +199,7 @@ export default function RunFlowScreen() {
             {step.status === "ready" && (
               <TouchableOpacity
                 onPress={() => handleStartStep(step.id)}
-                style={[styles.button, { backgroundColor: "#009688" }]}
+                style={[styles.iconButton, styles.startButton]}
               >
                 <Text style={styles.buttonText}>시작</Text>
               </TouchableOpacity>
@@ -194,7 +207,7 @@ export default function RunFlowScreen() {
             {step.status === "in_progress" && (
               <TouchableOpacity
                 onPress={() => handleComplete(step.id)}
-                style={[styles.button, { backgroundColor: "#6200ee" }]}
+                style={[styles.iconButton, styles.completeButton]}
               >
                 <Text style={styles.buttonText}>완료</Text>
               </TouchableOpacity>
@@ -220,17 +233,23 @@ export default function RunFlowScreen() {
         <Text>{progress.toFixed(0)}% 완료</Text>
       </View>
       <ScrollView style={styles.container}>
+        <Text style={styles.sectionTitle}>진행 중</Text>
         {inProgress.map((step) => (
-          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+          <View key={step.id}>{renderStepRow(step)}</View>
         ))}
+
+        <Text style={styles.sectionTitle}>실행 가능</Text>
         {ready.map((step) => (
-          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+          <View key={step.id}>{renderStepRow(step)}</View>
         ))}
+
+        <Text style={styles.sectionTitle}>대기 중</Text>
+
         {waiting.map((step) => (
-          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+          <View key={step.id}>{renderStepRow(step)}</View>
         ))}
         {completed.map((step) => (
-          <React.Fragment key={step.id}>{renderStepRow(step)}</React.Fragment>
+          <View key={step.id}>{renderStepRow(step)}</View>
         ))}
       </ScrollView>
 
@@ -239,17 +258,7 @@ export default function RunFlowScreen() {
           visible={editorVisible}
           step={editingStep}
           allSteps={flow?.steps || []}
-          onSave={(updatedStep) => {
-            // flow 업데이트
-            const updatedFlow = {
-              ...flow!,
-              steps: flow!.steps.map((s) =>
-                s.id === updatedStep.id ? updatedStep : s
-              ),
-            };
-            setFlow(updatedFlow);
-            setEditorVisible(false);
-          }}
+          onSave={handleSaveStep}
           onClose={() => setEditorVisible(false)}
         />
       )}
@@ -261,6 +270,29 @@ export default function RunFlowScreen() {
           onClose={() => setDetailVisible(false)}
         />
       )}
+
+      <FloatingAction
+        actions={actions}
+        color="#6200ee"
+        distanceToEdge={{
+          vertical: Platform.OS === "android" ? 90 : 70,
+          horizontal: 20,
+        }}
+        onPressItem={(name) => {
+          if (name === "bt_add_step") {
+            const newStep: Step = {
+              id: Date.now(),
+              name: "새 스텝",
+              triggers: [],
+              description: "",
+              position: flow?.steps.length ?? 0,
+            };
+
+            setEditingStep(newStep);
+            setEditorVisible(true);
+          }
+        }}
+      />
     </View>
   );
 }
@@ -337,5 +369,30 @@ const styles = StyleSheet.create({
   stepTimeLate: {
     color: "#d32f2f",
     fontWeight: "600",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginTop: 12,
+    marginBottom: 4,
+    color: "#333",
+  },
+  iconButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 6,
+  },
+  editButton: {
+    backgroundColor: "#e0e0e0",
+  },
+  startButton: {
+    backgroundColor: "#009688",
+  },
+  completeButton: {
+    backgroundColor: "#6200ee",
   },
 });

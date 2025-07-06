@@ -216,4 +216,10 @@ export default class FlowEngine {
 
     return result;
   }
+
+  public refresh(flow: Flow) {
+    this.flow = flow;
+    this.stepStates.clear();
+    this.initialize();
+  }
 }

@@ -1,6 +1,7 @@
 import { getDatabase } from "./db";
 import { Flow, FlowRow, Step, StepRow, TriggerRow, TriggerType } from "./types";
 
+
 /**
  * 플로우 목록 조회
  */
@@ -188,5 +189,41 @@ async function saveSteps(flowId: number, steps: Step[]) {
         ]
       );
     }
+  }
+}
+
+export async function insertStepToFlow(flowId: number, step: Step) {
+  const db = await getDatabase();
+
+  try {
+    await db.runAsync("BEGIN TRANSACTION");
+
+    await db.runAsync(
+      `INSERT INTO step (id, flow_id, name, description, position) VALUES (?, ?, ?, ?, ?)`,
+      [step.id, flowId, step.name, step.description ?? "", step.position]
+    );
+
+    for (const trigger of step.triggers) {
+      await db.runAsync(
+        `INSERT INTO step_trigger (id, step_id, type, target_step_ids, offset, time)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          trigger.id,
+          step.id,
+          trigger.type,
+          trigger.targetStepIds?.length
+            ? JSON.stringify(trigger.targetStepIds)
+            : null,
+          trigger.offset ?? null,
+          trigger.time ?? null,
+        ]
+      );
+    }
+
+    await db.runAsync("COMMIT");
+  } catch (error) {
+    await db.runAsync("ROLLBACK");
+    console.error("insertStepToFlow 실패:", error);
+    throw error;
   }
 }
